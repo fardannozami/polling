@@ -79,6 +79,9 @@ CREATE INDEX IF NOT EXISTS idx_votes_option_id ON votes(option_id);
 CREATE INDEX IF NOT EXISTS idx_votes_user_id ON votes(user_id);
 CREATE INDEX IF NOT EXISTS idx_poll_options_created_by ON poll_options(created_by);
 
+-- Ensure clean state when reapplying
+DROP TRIGGER IF EXISTS trigger_update_vote_count ON votes;
+
 CREATE OR REPLACE FUNCTION update_vote_count()
 RETURNS TRIGGER AS $$
 BEGIN

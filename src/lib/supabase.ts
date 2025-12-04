@@ -23,5 +23,7 @@ export type Vote = {
   id: string;
   option_id: string;
   user_id: string;
+  user_email?: string | null;
+  user_name?: string | null;
   created_at: string;
 };

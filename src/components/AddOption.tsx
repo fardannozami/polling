@@ -5,9 +5,10 @@ import { useAuth } from '../contexts/AuthContext';
 
 type Props = {
   onOptionAdded: () => void;
+  onRequireAuth: () => void;
 };
 
-export function AddOption({ onOptionAdded }: Props) {
+export function AddOption({ onOptionAdded, onRequireAuth }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
@@ -19,6 +20,12 @@ export function AddOption({ onOptionAdded }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (!user) {
+      onRequireAuth();
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -28,7 +35,7 @@ export function AddOption({ onOptionAdded }: Props) {
           name,
           location,
           map_url: mapUrl || null,
-          created_by: user!.id,
+          created_by: user.id,
         });
 
       if (insertError) throw insertError;
@@ -46,13 +53,21 @@ export function AddOption({ onOptionAdded }: Props) {
   };
 
   if (!isOpen) {
+    const handleOpen = () => {
+      if (!user) {
+        onRequireAuth();
+        return;
+      }
+      setIsOpen(true);
+    };
+
     return (
       <button
-        onClick={() => setIsOpen(true)}
+        onClick={handleOpen}
         className="w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white py-4 rounded-xl font-semibold hover:from-amber-600 hover:to-orange-700 transition flex items-center justify-center gap-2 shadow-md"
       >
         <PlusCircle className="w-5 h-5" />
-        Usulkan Tempat Baru
+        {user ? 'Usulkan Tempat Baru' : 'Login untuk usulkan tempat'}
       </button>
     );
   }

@@ -1,9 +1,17 @@
+import { useEffect, useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Auth } from './components/Auth';
 import { Poll } from './components/Poll';
 
 function AppContent() {
   const { user, loading } = useAuth();
+  const [showAuth, setShowAuth] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setShowAuth(false);
+    }
+  }, [user]);
 
   if (loading) {
     return (
@@ -16,7 +24,12 @@ function AppContent() {
     );
   }
 
-  return user ? <Poll /> : <Auth />;
+  return (
+    <>
+      <Poll onRequireAuth={() => setShowAuth(true)} />
+      {showAuth && <Auth isModal onClose={() => setShowAuth(false)} />}
+    </>
+  );
 }
 
 function App() {

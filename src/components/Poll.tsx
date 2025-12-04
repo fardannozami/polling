@@ -1,11 +1,15 @@
-import { useEffect, useState } from 'react';
-import { Coffee, LogOut, TrendingUp, Users } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Coffee, LogIn, LogOut, TrendingUp, Users } from 'lucide-react';
 import { supabase, PollOption as PollOptionType, Vote } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { PollOption } from './PollOption';
 import { AddOption } from './AddOption';
 
-export function Poll() {
+type PollProps = {
+  onRequireAuth: () => void;
+};
+
+export function Poll({ onRequireAuth }: PollProps) {
   const [options, setOptions] = useState<PollOptionType[]>([]);
   const [votes, setVotes] = useState<Vote[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,10 +68,17 @@ export function Poll() {
   }, []);
 
   const handleVote = async (optionId: string) => {
+    if (!user) {
+      onRequireAuth();
+      return;
+    }
+
     try {
       await supabase.from('votes').insert({
         option_id: optionId,
-        user_id: user!.id,
+        user_id: user.id,
+        user_email: user.email,
+        user_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
       });
       await loadData();
     } catch (error) {
@@ -76,12 +87,17 @@ export function Poll() {
   };
 
   const handleUnvote = async (optionId: string) => {
+    if (!user) {
+      onRequireAuth();
+      return;
+    }
+
     try {
       await supabase
         .from('votes')
         .delete()
         .eq('option_id', optionId)
-        .eq('user_id', user!.id);
+        .eq('user_id', user.id);
       await loadData();
     } catch (error) {
       console.error('Error unvoting:', error);
@@ -89,6 +105,11 @@ export function Poll() {
   };
 
   const handleDelete = async (optionId: string) => {
+    if (!user) {
+      onRequireAuth();
+      return;
+    }
+
     try {
       await supabase.from('poll_options').delete().eq('id', optionId);
       await loadData();
@@ -98,7 +119,8 @@ export function Poll() {
   };
 
   const getUserVotes = () => {
-    return votes.filter(v => v.user_id === user!.id).map(v => v.option_id);
+    if (!user) return [];
+    return votes.filter(v => v.user_id === user.id).map(v => v.option_id);
   };
 
   const getTotalVotes = () => {
@@ -110,6 +132,22 @@ export function Poll() {
   };
 
   const topOption = options[0];
+  const totalVotes = getTotalVotes();
+
+  const votesWithOptionNames = useMemo(() => {
+    const optionNameMap = new Map(options.map((opt) => [opt.id, opt.name]));
+    return votes
+      .map((vote) => ({
+        ...vote,
+        optionName: optionNameMap.get(vote.option_id) || 'Opsi tidak ditemukan',
+        votedAt: new Date(vote.created_at),
+        displayName:
+          vote.user_name ||
+          vote.user_email ||
+          `User ${vote.user_id.slice(0, 6)}`,
+      }))
+      .sort((a, b) => b.votedAt.getTime() - a.votedAt.getTime());
+  }, [votes, options]);
 
   if (loading) {
     return (
@@ -141,13 +179,23 @@ export function Poll() {
                 <p className="text-xs md:text-sm text-gray-500">till drop</p>
               </div>
             </div>
-            <button
-              onClick={() => signOut()}
-              className="text-gray-600 hover:text-gray-800 transition p-2"
-              title="Sign Out"
-            >
-              <LogOut className="w-5 h-5" />
-            </button>
+            {user ? (
+              <button
+                onClick={() => signOut()}
+                className="text-gray-600 hover:text-gray-800 transition p-2"
+                title="Sign Out"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
+            ) : (
+              <button
+                onClick={onRequireAuth}
+                className="flex items-center gap-2 text-amber-700 bg-amber-100 px-3 py-2 rounded-lg font-semibold hover:bg-amber-200 transition"
+              >
+                <LogIn className="w-4 h-4" />
+                Login untuk vote
+              </button>
+            )}
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
@@ -174,6 +222,77 @@ export function Poll() {
             </div>
           </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+            <div className="bg-white border border-amber-100 rounded-xl p-4 shadow-sm">
+              <div className="flex items-center gap-2 mb-3">
+                <TrendingUp className="w-5 h-5 text-amber-600" />
+                <span className="font-semibold text-gray-800">Grafik Hasil</span>
+              </div>
+              {options.length === 0 ? (
+                <p className="text-sm text-gray-500">Belum ada data untuk ditampilkan.</p>
+              ) : (
+                <div className="space-y-3">
+                  {options.map((option) => {
+                    const percentage = totalVotes === 0
+                      ? 0
+                      : Math.round((option.vote_count / totalVotes) * 100);
+                    return (
+                      <div key={option.id}>
+                        <div className="flex justify-between text-sm text-gray-700 mb-1">
+                          <span className="truncate pr-4">{option.name}</span>
+                          <span className="font-semibold">
+                            {option.vote_count} • {percentage}%
+                          </span>
+                        </div>
+                        <div className="w-full bg-amber-50 rounded-full h-3 overflow-hidden">
+                          <div
+                            className="h-3 rounded-full bg-gradient-to-r from-amber-400 via-orange-500 to-orange-600 transition-all"
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className="bg-white border border-amber-100 rounded-xl p-4 shadow-sm">
+              <div className="flex items-center gap-2 mb-3">
+                <Users className="w-5 h-5 text-amber-600" />
+                <span className="font-semibold text-gray-800">Siapa saja yang vote</span>
+              </div>
+              {votesWithOptionNames.length === 0 ? (
+                <p className="text-sm text-gray-500">Belum ada vote yang masuk.</p>
+              ) : (
+                <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
+                  {votesWithOptionNames.map((vote) => (
+                    <div
+                      key={vote.id}
+                      className="flex items-start justify-between bg-amber-50 border border-amber-100 rounded-lg p-3"
+                    >
+                      <div className="min-w-0">
+                        <p className="font-semibold text-gray-800 truncate">{vote.displayName}</p>
+                        {vote.user_email && (
+                          <p className="text-xs text-gray-600 truncate">{vote.user_email}</p>
+                        )}
+                        <p className="text-sm text-amber-800 mt-1 truncate">
+                          {vote.optionName}
+                        </p>
+                      </div>
+                      <p className="text-xs text-gray-500 ml-3 whitespace-nowrap">
+                        {vote.votedAt.toLocaleDateString('id-ID', {
+                          day: 'numeric',
+                          month: 'short',
+                        })}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
           {topOption && topOption.vote_count > 0 && (
             <div className="mt-6 bg-gradient-to-r from-amber-500 to-orange-600 rounded-xl p-4 text-white">
               <div className="flex items-center gap-2 mb-2">
@@ -190,7 +309,7 @@ export function Poll() {
         </div>
 
         <div className="mb-6">
-          <AddOption onOptionAdded={loadData} />
+          <AddOption onOptionAdded={loadData} onRequireAuth={onRequireAuth} />
         </div>
 
         <div className="space-y-4">
@@ -214,14 +333,18 @@ export function Poll() {
                 onVote={handleVote}
                 onUnvote={handleUnvote}
                 onDelete={handleDelete}
-                canDelete={option.created_by === user!.id}
+                canDelete={!!user && option.created_by === user.id}
               />
             ))
           )}
         </div>
 
         <div className="mt-8 text-center text-sm text-gray-600">
-          <p>Logged in as: {user?.email}</p>
+          {user ? (
+            <p>Logged in as: {user.email}</p>
+          ) : (
+            <p>Anda belum login. Klik tombol vote untuk mulai masuk.</p>
+          )}
         </div>
       </div>
     </div>

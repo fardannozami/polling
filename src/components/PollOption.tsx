@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { MapPin, Vote, Check, Trash2 } from 'lucide-react';
 import { PollOption as PollOptionType } from '../lib/supabase';
-import { useAuth } from '../contexts/AuthContext';
 
 type Props = {
   option: PollOptionType;
@@ -14,7 +13,6 @@ type Props = {
 
 export function PollOption({ option, hasVoted, onVote, onUnvote, onDelete, canDelete }: Props) {
   const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
 
   const handleVoteToggle = async () => {
     setLoading(true);
