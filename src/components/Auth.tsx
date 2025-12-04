@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Coffee, X } from 'lucide-react';
+import { CalendarDays, Coffee, X } from 'lucide-react';
 
 type AuthProps = {
   isModal?: boolean;
@@ -42,10 +42,24 @@ export function Auth({ isModal = false, onClose }: AuthProps) {
         <h1 className="text-3xl font-bold text-gray-800 mb-2">
           Coffee Meetup Poll
         </h1>
-        <p className="text-gray-600 text-center">
-          24 Desember 2025 • 18:00 WIB
+        <div className="flex flex-wrap items-center justify-center gap-3 mt-2">
+          <div className="flex items-center bg-orange-50 border border-orange-100 rounded-xl p-3 shadow-inner">
+            <div className="flex flex-col items-center justify-center px-3 py-2 bg-gradient-to-br from-amber-500 to-orange-600 text-white rounded-lg">
+              <span className="text-[10px] uppercase tracking-[0.25em]">Sel</span>
+              <span className="text-3xl font-black leading-none">24</span>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-semibold text-gray-800 flex items-center gap-1">
+                <CalendarDays className="w-4 h-4 text-amber-600" />
+                24 Desember 2025
+              </p>
+              <p className="text-sm text-orange-800 font-semibold">16:30 - till drop</p>
+            </div>
+          </div>
+        </div>
+        <p className="text-gray-700 text-center text-sm mt-3">
+          Kumpul-kumpul ngopi sore, sharing cerita seru, dan berburu tempat paling cozy bareng!
         </p>
-        <p className="text-sm text-gray-500 mt-1">till drop</p>
       </div>
 
       <div className="space-y-4">

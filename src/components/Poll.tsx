@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Coffee, LogIn, LogOut, TrendingUp, Users } from 'lucide-react';
+import { CalendarDays, Coffee, LogIn, LogOut, TrendingUp, Users } from 'lucide-react';
 import { supabase, PollOption as PollOptionType, Vote } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { PollOption } from './PollOption';
@@ -104,35 +104,46 @@ export function Poll({ onRequireAuth }: PollProps) {
     }
   };
 
-  const handleDelete = async (optionId: string) => {
-    if (!user) {
-      onRequireAuth();
-      return;
-    }
-
-    try {
-      await supabase.from('poll_options').delete().eq('id', optionId);
-      await loadData();
-    } catch (error) {
-      console.error('Error deleting option:', error);
-    }
-  };
-
   const getUserVotes = () => {
     if (!user) return [];
     return votes.filter(v => v.user_id === user.id).map(v => v.option_id);
-  };
-
-  const getTotalVotes = () => {
-    return votes.length;
   };
 
   const getUniqueVoters = () => {
     return new Set(votes.map(v => v.user_id)).size;
   };
 
-  const topOption = options[0];
-  const totalVotes = getTotalVotes();
+  const voteCountByOption = useMemo(() => {
+    const map = new Map<string, number>();
+    if (votes.length > 0) {
+      votes.forEach((vote) => {
+        map.set(vote.option_id, (map.get(vote.option_id) || 0) + 1);
+      });
+    }
+    options.forEach((opt) => {
+      if (!map.has(opt.id)) {
+        map.set(opt.id, opt.vote_count || 0);
+      }
+    });
+    return map;
+  }, [votes, options]);
+
+  const totalVotes = useMemo(() => {
+    let sum = 0;
+    voteCountByOption.forEach((val) => {
+      sum += val;
+    });
+    return sum;
+  }, [voteCountByOption]);
+
+  const topOption = useMemo(() => {
+    if (options.length === 0) return null;
+    return options.reduce<PollOptionType | null>((best, opt) => {
+      const current = voteCountByOption.get(opt.id) || 0;
+      const bestCount = best ? voteCountByOption.get(best.id) || 0 : -1;
+      return current > bestCount ? opt : best;
+    }, null);
+  }, [options, voteCountByOption]);
 
   const votesWithOptionNames = useMemo(() => {
     const optionNameMap = new Map(options.map((opt) => [opt.id, opt.name]));
@@ -171,12 +182,8 @@ export function Poll({ onRequireAuth }: PollProps) {
               </div>
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-                  Coffee Meetup Poll
+                  84 Coffee Meetup Poll
                 </h1>
-                <p className="text-gray-600 text-sm md:text-base">
-                  24 Desember 2025 • 18:00 WIB
-                </p>
-                <p className="text-xs md:text-sm text-gray-500">till drop</p>
               </div>
             </div>
             {user ? (
@@ -196,6 +203,24 @@ export function Poll({ onRequireAuth }: PollProps) {
                 Login untuk vote
               </button>
             )}
+          </div>
+
+          <div>
+             <div className="flex flex-wrap items-center gap-3 mt-2">
+                  <div className="flex items-center bg-orange-50 border border-orange-100 rounded-xl p-3 shadow-inner">
+                    <div className="flex flex-col items-center justify-center px-3 py-2 bg-gradient-to-br from-amber-500 to-orange-600 text-white rounded-lg">
+                      <span className="text-[10px] uppercase tracking-[0.25em]">Rabu</span>
+                      <span className="text-3xl font-black leading-none">24</span>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm font-semibold text-gray-800 flex items-center gap-1">
+                        <CalendarDays className="w-4 h-4 text-amber-600" />
+                        24 Desember 2025
+                      </p>
+                      <p className="text-sm text-orange-800 font-semibold">16:30 - till drop</p>
+                    </div>
+                  </div>
+                </div>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
@@ -218,7 +243,7 @@ export function Poll({ onRequireAuth }: PollProps) {
                 <TrendingUp className="w-4 h-4" />
                 <span className="text-sm font-medium">Total Votes</span>
               </div>
-              <p className="text-2xl font-bold text-green-900">{getTotalVotes()}</p>
+              <p className="text-2xl font-bold text-green-900">{totalVotes}</p>
             </div>
           </div>
 
@@ -232,20 +257,21 @@ export function Poll({ onRequireAuth }: PollProps) {
                 <p className="text-sm text-gray-500">Belum ada data untuk ditampilkan.</p>
               ) : (
                 <div className="space-y-3">
-                  {options.map((option) => {
-                    const percentage = totalVotes === 0
-                      ? 0
-                      : Math.round((option.vote_count / totalVotes) * 100);
-                    return (
-                      <div key={option.id}>
-                        <div className="flex justify-between text-sm text-gray-700 mb-1">
-                          <span className="truncate pr-4">{option.name}</span>
-                          <span className="font-semibold">
-                            {option.vote_count} • {percentage}%
-                          </span>
-                        </div>
-                        <div className="w-full bg-amber-50 rounded-full h-3 overflow-hidden">
-                          <div
+              {options.map((option) => {
+                const voteCount = voteCountByOption.get(option.id) || 0;
+                const percentage = totalVotes === 0
+                  ? 0
+                  : Math.round((voteCount / totalVotes) * 100);
+                return (
+                  <div key={option.id}>
+                    <div className="flex justify-between text-sm text-gray-700 mb-1">
+                      <span className="truncate pr-4">{option.name}</span>
+                      <span className="font-semibold">
+                        {voteCount} • {percentage}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-amber-50 rounded-full h-3 overflow-hidden">
+                      <div
                             className="h-3 rounded-full bg-gradient-to-r from-amber-400 via-orange-500 to-orange-600 transition-all"
                             style={{ width: `${percentage}%` }}
                           />
@@ -330,10 +356,9 @@ export function Poll({ onRequireAuth }: PollProps) {
                 key={option.id}
                 option={option}
                 hasVoted={getUserVotes().includes(option.id)}
+                voteCount={voteCountByOption.get(option.id) || 0}
                 onVote={handleVote}
                 onUnvote={handleUnvote}
-                onDelete={handleDelete}
-                canDelete={!!user && option.created_by === user.id}
               />
             ))
           )}

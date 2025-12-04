@@ -13,7 +13,7 @@ export type PollOption = {
   id: string;
   name: string;
   location: string;
-  map_url: string | null;
+  map_url: string;
   created_by: string;
   created_at: string;
   vote_count: number;

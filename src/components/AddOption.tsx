@@ -26,6 +26,11 @@ export function AddOption({ onOptionAdded, onRequireAuth }: Props) {
       return;
     }
 
+    if (!mapUrl.trim()) {
+      setError('Link Google Maps wajib diisi');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -124,7 +129,7 @@ export function AddOption({ onOptionAdded, onRequireAuth }: Props) {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Link Google Maps (opsional)
+            Link Google Maps <span className="text-red-500">*</span>
           </label>
           <input
             type="url"
@@ -132,6 +137,7 @@ export function AddOption({ onOptionAdded, onRequireAuth }: Props) {
             onChange={(e) => setMapUrl(e.target.value)}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition"
             placeholder="https://maps.google.com/..."
+            required
           />
           <p className="text-xs text-gray-500 mt-1">
             Paste link dari Google Maps untuk memudahkan orang lain menemukan lokasinya
