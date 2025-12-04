@@ -15,7 +15,7 @@ export function Poll({ onRequireAuth }: PollProps) {
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(new Date());
   const { user, signOut } = useAuth();
-  const VOTING_DEADLINE = '2025-12-24T16:30:00+07:00';
+  const VOTING_DEADLINE = '2025-12-04T19:00:00+07:00';
   const votingDeadline = useMemo(() => new Date(VOTING_DEADLINE), []);
   const isVotingClosed = now >= votingDeadline;
 
@@ -213,33 +213,7 @@ export function Poll({ onRequireAuth }: PollProps) {
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
                   84 Coffee Meetup Poll
                 </h1>
-                <div className="flex flex-wrap items-center gap-3 mt-2">
-                  <div className="flex items-center bg-orange-50 border border-orange-100 rounded-xl p-3 shadow-inner">
-                    <div className="flex flex-col items-center justify-center px-3 py-2 bg-gradient-to-br from-amber-500 to-orange-600 text-white rounded-lg">
-                      <span className="text-[10px] uppercase tracking-[0.25em]">Rabu</span>
-                      <span className="text-3xl font-black leading-none">24</span>
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-sm font-semibold text-gray-800 flex items-center gap-1">
-                        <CalendarDays className="w-4 h-4 text-amber-600" />
-                        24 Desember 2025
-                      </p>
-                      <p className="text-sm text-orange-800 font-semibold">16:30 - till drop</p>
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <p className="text-xs md:text-sm text-gray-700">
-                      Batas voting: 24 Desember 2025 • 16:30 WIB
-                    </p>
-                    <span className={`inline-flex w-fit px-3 py-1 rounded-full border text-xs md:text-sm ${
-                      isVotingClosed
-                        ? 'bg-red-50 text-red-700 border-red-200'
-                        : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                    }`}>
-                      {deadlineCountdown}
-                    </span>
-                  </div>
-                </div>
+
                 <p className="text-gray-700 text-sm md:text-base mt-3">
                   Kumpul-kumpul ngopi sore, ngobrol santai, dan berburu vibes cozy bareng. Save the date & jamnya biar nggak ketinggalan momen seru!
                 </p>
@@ -264,22 +238,31 @@ export function Poll({ onRequireAuth }: PollProps) {
             )}
           </div>
 
-          <div>
-             <div className="flex flex-wrap items-center gap-3 mt-2">
-                  <div className="flex items-center bg-orange-50 border border-orange-100 rounded-xl p-3 shadow-inner">
-                    <div className="flex flex-col items-center justify-center px-3 py-2 bg-gradient-to-br from-amber-500 to-orange-600 text-white rounded-lg">
-                      <span className="text-[10px] uppercase tracking-[0.25em]">Rabu</span>
-                      <span className="text-3xl font-black leading-none">24</span>
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-sm font-semibold text-gray-800 flex items-center gap-1">
-                        <CalendarDays className="w-4 h-4 text-amber-600" />
-                        24 Desember 2025
-                      </p>
-                      <p className="text-sm text-orange-800 font-semibold">16:30 - till drop</p>
-                    </div>
-                  </div>
-                </div>
+          <div className="flex flex-wrap items-center gap-3 mt-2">
+            <div className="flex items-center bg-orange-50 border border-orange-100 rounded-xl p-3 shadow-inner">
+              <div className="flex flex-col items-center justify-center px-3 py-2 bg-gradient-to-br from-amber-500 to-orange-600 text-white rounded-lg">
+                <span className="text-[10px] uppercase tracking-[0.25em]">Rabu</span>
+                <span className="text-3xl font-black leading-none">24</span>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-semibold text-gray-800 flex items-center gap-1">
+                  <CalendarDays className="w-4 h-4 text-amber-600" />
+                  24 Desember 2025
+                </p>
+                <p className="text-sm text-orange-800 font-semibold">16:30 - till drop</p>
+              </div>
+            </div>
+            <div className="flex flex-col gap-1">
+              <p className="text-xs md:text-sm text-gray-700">
+                Batas voting: 04 Desember 2025 • 19:00 WIB
+              </p>
+              <span className={`inline-flex w-fit px-3 py-1 rounded-full border text-xs md:text-sm ${isVotingClosed
+                  ? 'bg-red-50 text-red-700 border-red-200'
+                  : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                }`}>
+                {deadlineCountdown}
+              </span>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
@@ -316,21 +299,21 @@ export function Poll({ onRequireAuth }: PollProps) {
                 <p className="text-sm text-gray-500">Belum ada data untuk ditampilkan.</p>
               ) : (
                 <div className="space-y-3">
-              {options.map((option) => {
-                const voteCount = voteCountByOption.get(option.id) || 0;
-                const percentage = totalVotes === 0
-                  ? 0
-                  : Math.round((voteCount / totalVotes) * 100);
-                return (
-                  <div key={option.id}>
-                    <div className="flex justify-between text-sm text-gray-700 mb-1">
-                      <span className="truncate pr-4">{option.name}</span>
-                      <span className="font-semibold">
-                        {voteCount} • {percentage}%
-                      </span>
-                    </div>
-                    <div className="w-full bg-amber-50 rounded-full h-3 overflow-hidden">
-                      <div
+                  {options.map((option) => {
+                    const voteCount = voteCountByOption.get(option.id) || 0;
+                    const percentage = totalVotes === 0
+                      ? 0
+                      : Math.round((voteCount / totalVotes) * 100);
+                    return (
+                      <div key={option.id}>
+                        <div className="flex justify-between text-sm text-gray-700 mb-1">
+                          <span className="truncate pr-4">{option.name}</span>
+                          <span className="font-semibold">
+                            {voteCount} • {percentage}%
+                          </span>
+                        </div>
+                        <div className="w-full bg-amber-50 rounded-full h-3 overflow-hidden">
+                          <div
                             className="h-3 rounded-full bg-gradient-to-r from-amber-400 via-orange-500 to-orange-600 transition-all"
                             style={{ width: `${percentage}%` }}
                           />
