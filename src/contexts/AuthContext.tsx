@@ -31,8 +31,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signInWithGoogle = async () => {
+    const envRedirect = import.meta.env.VITE_AUTH_REDIRECT_URL;
+    const currentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+
+    const isLocal = (url: string) =>
+      url.includes('localhost') || url.includes('127.0.0.1');
+
     const redirectTo =
-      import.meta.env.VITE_AUTH_REDIRECT_URL || window.location.origin;
+      envRedirect && !(isLocal(envRedirect) && currentOrigin && !isLocal(currentOrigin))
+        ? envRedirect
+        : currentOrigin || envRedirect;
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
