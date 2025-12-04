@@ -6,14 +6,17 @@ type Props = {
   option: PollOptionType;
   hasVoted: boolean;
   voteCount: number;
+  votingClosed: boolean;
   onVote: (optionId: string) => Promise<void>;
   onUnvote: (optionId: string) => Promise<void>;
 };
 
-export function PollOption({ option, hasVoted, voteCount, onVote, onUnvote }: Props) {
+export function PollOption({ option, hasVoted, voteCount, votingClosed, onVote, onUnvote }: Props) {
   const [loading, setLoading] = useState(false);
 
   const handleVoteToggle = async () => {
+    if (votingClosed) return;
+
     setLoading(true);
     try {
       if (hasVoted) {
@@ -60,14 +63,21 @@ export function PollOption({ option, hasVoted, voteCount, onVote, onUnvote }: Pr
 
         <button
           onClick={handleVoteToggle}
-          disabled={loading}
+          disabled={loading || votingClosed}
           className={`px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 whitespace-nowrap ${
-            hasVoted
-              ? 'bg-amber-500 text-white hover:bg-amber-600'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          } disabled:opacity-50`}
+            votingClosed
+              ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+              : hasVoted
+                ? 'bg-amber-500 text-white hover:bg-amber-600'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          } disabled:opacity-60`}
         >
-          {hasVoted ? (
+          {votingClosed ? (
+            <>
+              <Check className="w-4 h-4" />
+              Voting ditutup
+            </>
+          ) : hasVoted ? (
             <>
               <Check className="w-4 h-4" />
               Voted

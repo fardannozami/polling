@@ -13,7 +13,11 @@ export function Poll({ onRequireAuth }: PollProps) {
   const [options, setOptions] = useState<PollOptionType[]>([]);
   const [votes, setVotes] = useState<Vote[]>([]);
   const [loading, setLoading] = useState(true);
+  const [now, setNow] = useState(new Date());
   const { user, signOut } = useAuth();
+  const VOTING_DEADLINE = '2025-12-24T16:30:00+07:00';
+  const votingDeadline = useMemo(() => new Date(VOTING_DEADLINE), []);
+  const isVotingClosed = now >= votingDeadline;
 
   const loadData = async () => {
     try {
@@ -67,7 +71,16 @@ export function Poll({ onRequireAuth }: PollProps) {
     };
   }, []);
 
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(id);
+  }, []);
+
   const handleVote = async (optionId: string) => {
+    if (isVotingClosed) {
+      alert('Voting sudah ditutup.');
+      return;
+    }
     if (!user) {
       onRequireAuth();
       return;
@@ -87,6 +100,10 @@ export function Poll({ onRequireAuth }: PollProps) {
   };
 
   const handleUnvote = async (optionId: string) => {
+    if (isVotingClosed) {
+      alert('Voting sudah ditutup.');
+      return;
+    }
     if (!user) {
       onRequireAuth();
       return;
@@ -160,6 +177,18 @@ export function Poll({ onRequireAuth }: PollProps) {
       .sort((a, b) => b.votedAt.getTime() - a.votedAt.getTime());
   }, [votes, options]);
 
+  const deadlineCountdown = useMemo(() => {
+    const diff = votingDeadline.getTime() - now.getTime();
+    if (diff <= 0) return 'Voting ditutup';
+    const totalMinutes = Math.floor(diff / 60000);
+    const days = Math.floor(totalMinutes / (60 * 24));
+    const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+    const minutes = totalMinutes % 60;
+    if (days > 0) return `Sisa ${days}h ${hours}m`;
+    if (hours > 0) return `Sisa ${hours}h ${minutes}m`;
+    return `Sisa ${minutes}m`;
+  }, [now, votingDeadline]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 flex items-center justify-center">
@@ -184,6 +213,36 @@ export function Poll({ onRequireAuth }: PollProps) {
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
                   84 Coffee Meetup Poll
                 </h1>
+                <div className="flex flex-wrap items-center gap-3 mt-2">
+                  <div className="flex items-center bg-orange-50 border border-orange-100 rounded-xl p-3 shadow-inner">
+                    <div className="flex flex-col items-center justify-center px-3 py-2 bg-gradient-to-br from-amber-500 to-orange-600 text-white rounded-lg">
+                      <span className="text-[10px] uppercase tracking-[0.25em]">Rabu</span>
+                      <span className="text-3xl font-black leading-none">24</span>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm font-semibold text-gray-800 flex items-center gap-1">
+                        <CalendarDays className="w-4 h-4 text-amber-600" />
+                        24 Desember 2025
+                      </p>
+                      <p className="text-sm text-orange-800 font-semibold">16:30 - till drop</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <p className="text-xs md:text-sm text-gray-700">
+                      Batas voting: 24 Desember 2025 • 16:30 WIB
+                    </p>
+                    <span className={`inline-flex w-fit px-3 py-1 rounded-full border text-xs md:text-sm ${
+                      isVotingClosed
+                        ? 'bg-red-50 text-red-700 border-red-200'
+                        : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    }`}>
+                      {deadlineCountdown}
+                    </span>
+                  </div>
+                </div>
+                <p className="text-gray-700 text-sm md:text-base mt-3">
+                  Kumpul-kumpul ngopi sore, ngobrol santai, dan berburu vibes cozy bareng. Save the date & jamnya biar nggak ketinggalan momen seru!
+                </p>
               </div>
             </div>
             {user ? (
@@ -357,6 +416,7 @@ export function Poll({ onRequireAuth }: PollProps) {
                 option={option}
                 hasVoted={getUserVotes().includes(option.id)}
                 voteCount={voteCountByOption.get(option.id) || 0}
+                votingClosed={isVotingClosed}
                 onVote={handleVote}
                 onUnvote={handleUnvote}
               />
