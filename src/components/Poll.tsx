@@ -211,7 +211,7 @@ export function Poll({ onRequireAuth }: PollProps) {
               </div>
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-                  84 Coffee Meetup Poll
+                  84 Meet and Greet Poll
                 </h1>
 
                 <p className="text-gray-700 text-sm md:text-base mt-3">
@@ -247,7 +247,7 @@ export function Poll({ onRequireAuth }: PollProps) {
               <div className="ml-3">
                 <p className="text-sm font-semibold text-gray-800 flex items-center gap-1">
                   <CalendarDays className="w-4 h-4 text-amber-600" />
-                  24 Desember 2025
+                  23 Desember 2025
                 </p>
                 <p className="text-sm text-orange-800 font-semibold">16:30 - till drop</p>
               </div>
