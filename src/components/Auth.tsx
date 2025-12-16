@@ -46,7 +46,7 @@ export function Auth({ isModal = false, onClose }: AuthProps) {
           <div className="flex items-center bg-orange-50 border border-orange-100 rounded-xl p-3 shadow-inner">
             <div className="flex flex-col items-center justify-center px-3 py-2 bg-gradient-to-br from-amber-500 to-orange-600 text-white rounded-lg">
               <span className="text-[10px] uppercase tracking-[0.25em]">Sel</span>
-              <span className="text-3xl font-black leading-none">24</span>
+              <span className="text-3xl font-black leading-none">23</span>
             </div>
             <div className="ml-3">
               <p className="text-sm font-semibold text-gray-800 flex items-center gap-1">
