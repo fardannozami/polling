@@ -15,7 +15,7 @@ export function Poll({ onRequireAuth }: PollProps) {
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(new Date());
   const { user, signOut } = useAuth();
-  const VOTING_DEADLINE = '2025-12-17T20:00:00+07:00';
+  const VOTING_DEADLINE = '2025-12-17T22:00:00+07:00';
   const votingDeadline = useMemo(() => new Date(VOTING_DEADLINE), []);
   const isVotingClosed = now >= votingDeadline;
 
@@ -254,7 +254,7 @@ export function Poll({ onRequireAuth }: PollProps) {
             </div>
             <div className="flex flex-col gap-1">
               <p className="text-xs md:text-sm text-gray-700">
-                Batas voting: 17 Desember 2025 • 20:00 WIB
+                Batas voting: 17 Desember 2025 • 22:00 WIB
               </p>
               <span className={`inline-flex w-fit px-3 py-1 rounded-full border text-xs md:text-sm ${isVotingClosed
                   ? 'bg-red-50 text-red-700 border-red-200'
